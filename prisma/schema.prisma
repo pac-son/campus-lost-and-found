@@ -1,0 +1,81 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Users Model
+model User {
+  userId       Int         @id @default(autoincrement())
+  fullName     String
+  email        String      @unique
+  phoneNumber  String
+  passwordHash String
+  role         String      @default("user") // 'user' or 'admin'
+  createdAt    DateTime    @default(now())
+  
+  lostItems    LostItem[]
+  foundItems   FoundItem[]
+  claims       Claim[]     @relation("Claimant")
+  reviewedClaims Claim[]   @relation("Reviewer")
+}
+
+// 2. Categories Model
+model Category {
+  categoryId   Int         @id @default(autoincrement())
+  categoryName String      @unique
+  
+  lostItems    LostItem[]
+  foundItems   FoundItem[]
+}
+
+// 3. Lost Items Model
+model LostItem {
+  lostItemId   Int         @id @default(autoincrement())
+  userId       Int
+  categoryId   Int?
+  itemName     String
+  description  String
+  locationLost String
+  dateLost     DateTime
+  status       String      @default("open") // 'open', 'matched', 'resolved'
+  createdAt    DateTime    @default(now())
+
+  user         User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  category     Category?   @relation(fields: [categoryId], references: [categoryId], onDelete: SetNull)
+}
+
+// 4. Found Items Model
+model FoundItem {
+  foundItemId   Int        @id @default(autoincrement())
+  userId        Int
+  categoryId    Int?
+  itemName      String
+  description   String
+  locationFound String
+  dateFound     DateTime
+  imagePath     String?
+  status        String     @default("available") // 'available', 'claimed', 'returned'
+  createdAt     DateTime   @default(now())
+
+  user          User       @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  category      Category?  @relation(fields: [categoryId], references: [categoryId], onDelete: SetNull)
+  claims        Claim[]
+}
+
+// 5. Claims Model
+model Claim {
+  claimId            Int       @id @default(autoincrement())
+  foundItemId        Int
+  claimantId         Int
+  verificationAnswer String
+  claimStatus        String    @default("pending") // 'pending', 'approved', 'rejected'
+  reviewedBy         Int?
+  createdAt          DateTime  @default(now())
+
+  foundItem          FoundItem @relation(fields: [foundItemId], references: [foundItemId], onDelete: Cascade)
+  claimant           User      @relation("Claimant", fields: [claimantId], references: [userId], onDelete: Cascade)
+  reviewer           User?     @relation("Reviewer", fields: [reviewedBy], references: [userId], onDelete: SetNull)
+}
