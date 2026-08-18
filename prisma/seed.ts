@@ -1,13 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
 
-// Pass the database connection directly into the adapter
-const adapter = new PrismaLibSql({
-  url: "file:./dev.db",
-});
-
-// Construct PrismaClient using the adapter
-const prisma = new PrismaClient({ adapter });
+// Initialize a standard PrismaClient (it will automatically use the DATABASE_URL from your .env)
+const prisma = new PrismaClient();
 
 async function main() {
   const defaultCategories = [

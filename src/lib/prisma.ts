@@ -1,13 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
 
-const adapter = new PrismaLibSql({
-  url: "file:./dev.db",
-});
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-
-// Construct with the adapter
-export const prisma = globalForPrisma.prisma || new PrismaClient({ adapter });
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
