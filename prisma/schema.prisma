@@ -60,6 +60,9 @@ model FoundItem {
   status        String     @default("available") // 'available', 'claimed', 'returned'
   createdAt     DateTime   @default(now())
 
+  custody       String     @default("with_finder") // 'with_finder' or 'with_admin'
+  adminMessage  String?    // Instructions from admin to the finder
+
   user          User       @relation(fields: [userId], references: [userId], onDelete: Cascade)
   category      Category?  @relation(fields: [categoryId], references: [categoryId], onDelete: SetNull)
   claims        Claim[]
@@ -72,6 +75,7 @@ model Claim {
   claimantId         Int
   verificationAnswer String
   claimStatus        String    @default("pending") // 'pending', 'approved', 'rejected'
+  collectionInstructions String?
   reviewedBy         Int?
   createdAt          DateTime  @default(now())
 

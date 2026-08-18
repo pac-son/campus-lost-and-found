@@ -2,15 +2,19 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
 
+// In Next.js 15, params is a Promise
 type Props = {
-  params: { foundItemId: string };
+  params: Promise<{ foundItemId: string }>;
 };
 
 export default async function ClaimFoundItemPage({ params }: Props) {
   const currentUser = await getCurrentUser();
   if (!currentUser) redirect("/login");
 
-  const foundItemId = Number(params.foundItemId);
+  // Await the params object
+  const resolvedParams = await params;
+  const foundItemId = Number(resolvedParams.foundItemId);
+  
   if (!Number.isFinite(foundItemId)) notFound();
 
   const foundItem = await prisma.foundItem.findUnique({
@@ -30,6 +34,36 @@ export default async function ClaimFoundItemPage({ params }: Props) {
     );
   }
 
+  // The Server Action
+  async function submitClaim(formData: FormData) {
+    "use server";
+    
+    // We must re-verify the user inside the server action for security
+    const actionUser = await getCurrentUser();
+    if (!actionUser) throw new Error("Unauthorized");
+
+    const verificationAnswer = String(formData.get("verificationAnswer") ?? "").trim();
+    if (!verificationAnswer) redirect(`/claim/${foundItemId}?error=missing_answer`);
+
+    try {
+      // Write directly to the database instead of making a fetch call
+      await prisma.claim.create({
+        data: {
+          foundItemId: foundItemId,
+          claimantId: actionUser.userId,
+          verificationAnswer,
+          claimStatus: "pending",
+        },
+      });
+    } catch (error) {
+      console.error("Error submitting claim:", error);
+      // Handle the error appropriately, maybe redirect with an error param
+    }
+
+    // After submit, go back home
+    redirect("/");
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -38,35 +72,14 @@ export default async function ClaimFoundItemPage({ params }: Props) {
           Item: <span className="font-semibold">{foundItem.itemName}</span>
         </p>
 
-        <form
-          className="space-y-4"
-          action={async (formData) => {
-            "use server";
-
-            const verificationAnswer = String(formData.get("verificationAnswer") ?? "").trim();
-            if (!verificationAnswer) redirect(`/claim/${foundItemId}?error=missing_answer`);
-
-            await fetch("/api/items/claim", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                foundItemId,
-                claimantId: currentUser.userId,
-                verificationAnswer,
-              }),
-            }).catch(() => null);
-
-            // After submit, go back home
-            redirect("/");
-          }}
-        >
+        <form className="space-y-4" action={submitClaim}>
           <label className="block">
             <span className="text-sm font-medium text-gray-700">Answer Provided</span>
             <input
               name="verificationAnswer"
               required
               placeholder="Type why you believe this is your item..."
-              className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 bg-white text-gray-900" 
             />
           </label>
 

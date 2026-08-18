@@ -16,26 +16,43 @@ export default async function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar Placeholder */}
+      {/* Navbar */}
       <nav className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-blue-600">Otuoke Lost & Found</h1>
+        <h1 className="text-xl font-bold text-blue-600">DONAPP</h1>
         <div className="flex gap-4 items-center">
           {currentUser ? (
             <>
-            <span className="text-gray-700 font-medium text-sm">Hello, {currentUser.fullName}</span>
-            {currentUser.role === 'admin' && (
-              <Link href="/admin" className="text-blue-600 font-medium hover:underline">Admin</Link>
-            )}
-            <LogoutButton />
-          </>
-        ) : (
-          <>
-            <Link href="/login" className="text-gray-600 font-medium hover:text-blue-600">Login</Link>
-            <Link href="/register" className="bg-blue-100 text-blue-700 px-4 py-2 rounded-md font-medium hover:bg-blue-200 transition-colors">Sign Up</Link>
-          </>
-        )}
-      </div>
-    </nav>
+              <span className="text-gray-700 font-medium text-sm mr-2">Hello, {currentUser.fullName}</span>
+              
+              {/* User Dashboard Links */}
+              <Link href="/my-claims" className="text-gray-600 font-medium hover:text-blue-600 text-sm">
+                My Claims
+              </Link>
+              <Link href="/my-reports" className="text-gray-600 font-medium hover:text-blue-600 text-sm">
+                My Reports
+              </Link>
+
+              {/* Admin Link (Only visible to admins) */}
+              {currentUser.role === 'admin' && (
+                <Link href="/admin" className="text-blue-600 font-bold hover:underline text-sm ml-2">
+                  Admin Panel
+                </Link>
+              )}
+              
+              <div className="ml-2 pl-4 border-l border-gray-300">
+                <LogoutButton />
+              </div>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="text-gray-600 font-medium hover:text-blue-600">Login</Link>
+              <Link href="/register" className="bg-blue-100 text-blue-700 px-4 py-2 rounded-md font-medium hover:bg-blue-200 transition-colors">Sign Up</Link>
+            </>
+          )}
+        </div>
+      </nav>
+
+      {/* Main Content */}
 
       <main className="max-w-6xl mx-auto px-4 py-12">
         {/* Hero & CTAs */}
@@ -88,7 +105,7 @@ export default async function Dashboard() {
                       </span>
                     </div>
                     <h4 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">{item.itemName}</h4>
-                    <p className="text-gray-600 text-sm line-clamp-2 mb-4">{item.description}</p>
+                    <p className="text-gray-500 text-sm italic mb-4">Description hidden for security verification.</p>
                     <div className="flex items-center text-gray-500 text-sm">
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                       {item.locationFound}

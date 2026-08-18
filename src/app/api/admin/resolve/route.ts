@@ -3,32 +3,37 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    const { claimId, foundItemId, action } = await request.json(); // action: 'approve' | 'reject'
+    // We now extract collectionInstructions from the request
+    const { claimId, foundItemId, action, collectionInstructions } = await request.json();
 
     if (action === "approve") {
-      // Use a transaction to ensure both updates happen together
       await prisma.$transaction([
-        // 1. Update the specific claim to approved
         prisma.claim.update({
           where: { claimId },
-          data: { claimStatus: "approved" },
+          // Save the custom instructions to the database
+          data: { claimStatus: "approved", collectionInstructions }, 
         }),
-        // 2. Update the found item to returned
         prisma.foundItem.update({
           where: { foundItemId },
-          data: { status: "returned" },
+          data: { status: "awaiting_collection" },
         }),
-        // 3. Optional: Reject all other pending claims for this item
         prisma.claim.updateMany({
-          where: { 
-            foundItemId, 
-            claimId: { not: claimId } 
-          },
+          where: { foundItemId, claimId: { not: claimId } },
           data: { claimStatus: "rejected" },
         })
       ]);
-    } else {
-      // If rejected, just update the claim status
+    } else if (action === "handover") {
+      await prisma.$transaction([
+        prisma.claim.update({
+          where: { claimId },
+          data: { claimStatus: "completed" },
+        }),
+        prisma.foundItem.update({
+          where: { foundItemId },
+          data: { status: "returned" },
+        })
+      ]);
+    } else if (action === "reject") {
       await prisma.claim.update({
         where: { claimId },
         data: { claimStatus: "rejected" },
