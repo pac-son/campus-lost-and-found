@@ -4,6 +4,8 @@ import { getCurrentUser } from "@/lib/auth";
 import ClaimList from "@/components/ClaimList";
 import InventoryList from "@/components/InventoryList";
 
+export const dynamic = "force-dynamic";
+
 async function getStats() {
   const results = await Promise.all([
     prisma.foundItem.count(),
