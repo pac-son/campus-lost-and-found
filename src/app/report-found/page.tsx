@@ -43,7 +43,7 @@ export default function ReportFoundPage() {
       const res = await fetch("/api/items/found", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, userId: 1 }),
+        body: JSON.stringify(formData),
       });
 
       if (!res.ok) throw new Error("Failed to report item.");

@@ -19,7 +19,7 @@ export default function ReportLostPage() {
     const res = await fetch("/api/items/lost", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...formData, userId: 1 }),
+      body: JSON.stringify(formData),
     });
 
     if (res.ok) {
