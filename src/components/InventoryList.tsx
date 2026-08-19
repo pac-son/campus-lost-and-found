@@ -6,16 +6,26 @@ export default function InventoryList({ items }: { items: any[] }) {
   const [messages, setMessages] = useState<Record<number, string>>({});
 
   async function handleCustodyUpdate(foundItemId: number, action: "request_dropoff" | "mark_received") {
-    await fetch("/api/admin/custody", {
-      method: "POST",
-      body: JSON.stringify({ 
-        foundItemId, 
-        action, 
-        message: messages[foundItemId] || "" 
-      }),
-      headers: { "Content-Type": "application/json" },
-    });
-    window.location.reload();
+    try {
+      const response = await fetch("/api/admin/custody", {
+        method: "POST",
+        body: JSON.stringify({ 
+          foundItemId, 
+          action, 
+          message: messages[foundItemId] || "" 
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      const data = await response.json();
+      
+      // Pause everything and show the raw server response
+      alert("SERVER DIAGNOSTIC:\n\n" + JSON.stringify(data, null, 2));
+      
+      window.location.reload();
+    } catch (error) {
+      alert("Network failed completely.");
+    }
   }
 
   if (items.length === 0) return <p className="text-gray-500">All reported items are physically secured.</p>;

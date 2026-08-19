@@ -11,22 +11,20 @@ export async function POST(request: Request) {
     }
 
     const { foundItemId, action, message } = await request.json();
-    
-    // Safety check: Ensure Prisma reads the ID as an integer
     const id = Number(foundItemId);
+    let updatedRecord = null;
 
     if (action === "request_dropoff") {
-      await prisma.foundItem.update({
+      updatedRecord = await prisma.foundItem.update({
         where: { foundItemId: id },
         data: { 
-          // If the admin leaves the box blank, force a default message so it never saves as a falsy empty string
           adminMessage: message && message.trim() !== "" 
             ? message 
             : "Please bring this item to the Student Affairs office as soon as possible." 
         },
       });
     } else if (action === "mark_received") {
-      await prisma.foundItem.update({
+      updatedRecord = await prisma.foundItem.update({
         where: { foundItemId: id },
         data: { 
           custody: "with_admin", 
@@ -35,13 +33,13 @@ export async function POST(request: Request) {
       });
     }
 
-    // Force Next.js to purge the cache for both dashboards immediately
     revalidatePath("/admin", "page");
     revalidatePath("/my-reports", "page");
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("CUSTODY API ERROR:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    // We now send the EXACT record back to the frontend to prove it saved
+    return NextResponse.json({ success: true, updatedRecord });
+  } catch (error: any) {
+    console.error("CUSTODY API ERROR:", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
