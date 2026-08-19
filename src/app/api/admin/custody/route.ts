@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
   try {
@@ -22,6 +23,9 @@ export async function POST(request: Request) {
         data: { custody: "with_admin", adminMessage: "Item safely received by Administration." },
       });
     }
+
+    revalidatePath("/admin");
+    revalidatePath("/my-reports");
 
     return NextResponse.json({ success: true });
   } catch (error) {
