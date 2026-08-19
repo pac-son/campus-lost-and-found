@@ -20,7 +20,7 @@ export default function InventoryList({ items }: { items: any[] }) {
       const data = await response.json();
       
       // Pause everything and show the raw server response
-      alert("SERVER DIAGNOSTIC:\n\n" + JSON.stringify(data, null, 2));
+      // alert("SERVER DIAGNOSTIC:\n\n" + JSON.stringify(data, null, 2));
       
       window.location.reload();
     } catch (error) {
